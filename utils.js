@@ -1,3 +1,5 @@
+const { Builder, By, until, Capabilities } = require("selenium-webdriver");
+const chrome = require("selenium-webdriver/chrome");
 function getRandomElementsFromArray(array, count) {
   const shuffledArray = array.slice();
   for (let i = shuffledArray.length - 1; i > 0; i--) {
@@ -15,13 +17,24 @@ function convertExcel(excelFile) {
 
   const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
   const column = data[0];
-  return data.slice(1).map((item) => {
+  const excelData = data.slice(1).map((item) => {
     const obj = {};
     column.forEach((x, index) => {
       obj[x] = item[index];
     });
     return obj;
   });
+  return config.isRunAllExcel
+    ? excelData
+    : excelData.slice(config.startExcelIndex, config.EndExcelIndex);
+}
+
+function convertArrayToExcel(dataArray, path) {
+  const worksheet = XLSX.utils.json_to_sheet(dataArray);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+  const excelFilePath = path;
+  XLSX.writeFile(workbook, excelFilePath);
 }
 
 function getRandomPort(min, max) {
@@ -34,5 +47,40 @@ async function waitFor(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function getDriver(profile) {
+  const chromeCapabilities = Capabilities.chrome();
+  chromeCapabilities.set("chromeOptions");
 
-module.exports = { getRandomElementsFromArray, convertExcel, getRandomPort, waitFor };
+  const chromeOptions = new chrome.Options();
+  chromeOptions.addArguments([
+    "user-data-dir=" + profile,
+    `--remote-debugging-port=${getRandomPort(8000, 9000)}`,
+  ]);
+
+  return new Builder()
+    .forBrowser("chrome")
+    .setChromeOptions(chromeOptions)
+    .withCapabilities(chromeCapabilities)
+    .build();
+}
+
+async function getElement(driver, idElement) {
+  await driver.wait(until.elementLocated(By.xpath(idElement)), 10000);
+  return await driver.findElement(By.xpath(idElement));
+}
+
+async function getElements(driver, idElement) {
+  await driver.wait(until.elementLocated(By.xpath(idElement)), 10000);
+  return await driver.findElements(By.xpath(idElement));
+}
+
+module.exports = {
+  getRandomElementsFromArray,
+  convertExcel,
+  getRandomPort,
+  waitFor,
+  getDriver,
+  getElement,
+  getElements,
+  convertArrayToExcel,
+};

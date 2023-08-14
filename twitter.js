@@ -5,79 +5,76 @@ const {
   getRandomElementsFromArray,
   convertExcel,
   getRandomPort,
-  waitFor
+  waitFor,
+  getDriver,
 } = require("./utils.js");
 
-
 const loginTwitter = async (profile, username, password, comment, metamask) => {
-  const chromeCapabilities = Capabilities.chrome();
-  chromeCapabilities.set("chromeOptions");
-
-  const chromeOptions = new chrome.Options();
-  chromeOptions.addArguments([
-    "user-data-dir=" + profile,
-    `--remote-debugging-port=${getRandomPort(8000, 9000)}`,
-  ]);
-
-  const driver = new Builder()
-    .forBrowser("chrome")
-    .setChromeOptions(chromeOptions)
-    .withCapabilities(chromeCapabilities)
-    .build();
+  const driver = getDriver(profile);
 
   try {
-    // await driver.get(config.loginUrl);
-    // await waitFor(2000);
-    // await driver.wait(
-    //   until.elementLocated(By.xpath("//input[@autocomplete='username']")),
-    //   10000
-    // );
-    // const usernameElement = await driver.findElement(
-    //   By.xpath("//input[@autocomplete='username']")
-    // );
-    // usernameElement.click();
-    // await usernameElement.sendKeys(username);
-    // const nextBtn = await driver.executeScript(
-    //   "return document.querySelectorAll('[role=\"button\"]')"
-    // );
-    // nextBtn[3].click();
-    // await waitFor(2000);
+    await driver.get(config.loginUrl);
+    await waitFor(2000);
+    await driver.wait(
+      until.elementLocated(By.xpath("//input[@autocomplete='username']")),
+      10000
+    );
+    const usernameElement = await driver.findElement(
+      By.xpath("//input[@autocomplete='username']")
+    );
+    usernameElement.click();
+    await usernameElement.sendKeys(username);
+    const nextBtn = await driver.executeScript(
+      "return document.querySelectorAll('[role=\"button\"]')"
+    );
+    nextBtn[3].click();
+    await waitFor(2000);
 
-    // const isCheckNickname = await isElementPresent(
-    //   driver,
-    //   By.xpath("//div[@name='text']")
-    // );
-    // if (isCheckNickname) {
-    //   const nickname = await driver.findElement(
-    //     By.xpath("//div[@name='text']")
-    //   );
-    //   nickname.click();
-    //   await nickname.sendKeys("@" + username);
-    //   const nextBtn = await driver.executeScript(
-    //     "return document.querySelectorAll('[role=\"button\"]')"
-    //   );
-    //   nextBtn[3].click();
-    //   await waitFor(2000);
-    // }
+    const isCheckNickname = await isElementPresent(
+      driver,
+      By.xpath("//div[@name='text']")
+    );
+    if (isCheckNickname) {
+      const nickname = await driver.findElement(
+        By.xpath("//div[@name='text']")
+      );
+      nickname.click();
+      await nickname.sendKeys("@" + username);
+      const nextBtn = await driver.executeScript(
+        "return document.querySelectorAll('[role=\"button\"]')"
+      );
+      nextBtn[3].click();
+      await waitFor(2000);
+    }
 
-    // await driver.wait(
-    //   until.elementLocated(
-    //     By.xpath("//input[@autocomplete='current-password']")
-    //   ),
-    //   10000
-    // );
-    // const passwordelement = await driver.findElement(
-    //   By.xpath("//input[@autocomplete='current-password']")
-    // );
-    // passwordelement.click();
-    // await passwordelement.sendKeys(password);
-    // await waitFor(2000);
+    await driver.wait(
+      until.elementLocated(
+        By.xpath("//input[@autocomplete='current-password']")
+      ),
+      10000
+    );
+    const passwordelement = await driver.findElement(
+      By.xpath("//input[@autocomplete='current-password']")
+    );
+    passwordelement.click();
+    await passwordelement.sendKeys(password);
+    await waitFor(2000);
 
-    // const loginBtn = await driver.executeScript(
-    //   "return document.querySelectorAll('[role=\"button\"]')"
-    // );
-    // loginBtn[3].click();
-    // await waitFor(2000);
+    const loginBtn = await driver.executeScript(
+      "return document.querySelectorAll('[role=\"button\"]')"
+    );
+    loginBtn[3].click();
+    await waitFor(2000);
+  } catch (error) {
+  } finally {
+    return { ...driver };
+  }
+};
+
+const onHandleActionTwitter = async (profile, comment, metamask) => {
+  const driver = getDriver(profile);
+
+  try {
     const twitterIdurl = config.twitterURL + config.twitterID;
     driver.get(twitterIdurl);
     if (config.isLike) {
@@ -91,7 +88,7 @@ const loginTwitter = async (profile, username, password, comment, metamask) => {
     }
   } catch (error) {
   } finally {
-    return { ...driver }
+    return { ...driver };
   }
 };
 
@@ -130,10 +127,9 @@ const replyTW = async (driver, comment, metamask) => {
     By.xpath(textEditorElementId)
   );
   driver.executeScript("arguments[0].click();", textEditorElement);
-  const newComment = config.isCustomComment ? metamask : comment
+  const newComment = config.isCustomComment ? metamask : comment;
   textEditorElement.sendKeys(
-    newComment +
-    getRandomElementsFromArray(twitterUsers, 3).join(" ")
+    newComment + getRandomElementsFromArray(twitterUsers, 3).join(" ")
   );
 
   const replyElementBtn = "//div[@data-testid='tweetButtonInline']";
@@ -151,11 +147,11 @@ const openDcom = async () => {
     .build();
   try {
     driver.get(config.dcomURL);
-    return driver
+    return driver;
   } catch (error) {
     return;
   } finally {
-    return { ...driver }
+    return { ...driver };
   }
 };
 
@@ -163,41 +159,39 @@ const getBtnDcom = async (driver) => {
   const btnElementId = "//button[@id='home_connect_btn']";
   await driver.wait(until.elementLocated(By.xpath(btnElementId)), 10000);
   return await driver.findElement(By.xpath(btnElementId));
-}
+};
 
 let excelData = convertExcel("excel");
-excelData = config.isRunAllExcel ? excelData : excelData.slice(config.startExcelIndex, config.EndExcelIndex)
 const length = excelData.length;
 let i = 0;
 
-(async () => {
+const main = async () => {
   const waitingTime = 10000;
   let drivers = [];
   const driverDcom = await openDcom();
-  const btnConnect = await getBtnDcom(driverDcom);
+  const btn = await getBtnDcom(driverDcom);
   while (i <= length) {
-    driverDcom.executeScript("arguments[0].click();", btnConnect);
-    await waitFor(waitingTime)
+    driverDcom.executeScript("arguments[0].click();", btn);
+    await waitFor(waitingTime);
     const promiseAll = [];
     excelData.slice(i, i + config.groupChrome).forEach((item) => {
       const profile = `${config.profile}\\${item.STT}\\Data\\profile`;
       console.log({ profile });
       promiseAll.push(
-        loginTwitter.bind({ ...this }, profile, item.Twitter, item.PassTwitter, item.Comment, item.Metamask
-        )
+        onHandleActionTwitter.bind(this, profile, item.Comment, item.Metamask)
       );
     });
-    waitFor(5000);
     drivers = await Promise.all(promiseAll.map((x) => x()));
-    waitFor(5000);
-    (async () => {
-      await drivers.forEach(async (x) => { await x.close() })
-    })();
-    waitFor(5000);
+    waitFor(1000);
+    drivers.forEach(async (x) => {
+      await x.close();
+    });
+    waitFor(1000);
     i += config.groupChrome;
-    // const btnDisconnect = await getBtnDcom(driverDcom);
-    driverDcom.executeScript("arguments[0].click();", btnConnect);
-    waitFor(waitingTime)
-    console.log(drivers)
+    driverDcom.executeScript("arguments[0].click();", btn);
+    waitFor(waitingTime);
+    console.log(drivers);
   }
-})();
+};
+
+main();
