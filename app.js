@@ -5,13 +5,11 @@ const {
   getRandomElementsFromArray,
   convertExcel,
   getRandomPort,
+  waitFor
 } = require("./utils.js");
 
-async function waitFor(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
-const loginTwitter = async (profile, username, password) => {
+const loginTwitter = async (profile, username, password, comment, metamask) => {
   const chromeCapabilities = Capabilities.chrome();
   chromeCapabilities.set("chromeOptions");
 
@@ -89,11 +87,11 @@ const loginTwitter = async (profile, username, password) => {
       await retweetTW(driver);
     }
     if (config.isReply) {
-      await replyTW(driver);
+      await replyTW(driver, comment, metamask);
     }
   } catch (error) {
   } finally {
-    return { ...driver };
+    return { ...driver }
   }
 };
 
@@ -124,7 +122,7 @@ const retweetTW = async (driver) => {
   }
 };
 
-const replyTW = async (driver) => {
+const replyTW = async (driver, comment, metamask) => {
   const twitterUsers = excelData.map((x) => "@" + x.Twitter);
   const textEditorElementId = "//div[@aria-label='Tweet text']";
   await driver.wait(until.elementLocated(By.xpath(textEditorElementId)), 10000);
@@ -132,9 +130,10 @@ const replyTW = async (driver) => {
     By.xpath(textEditorElementId)
   );
   driver.executeScript("arguments[0].click();", textEditorElement);
+  const newComment = config.isCustomComment ? metamask : comment
   textEditorElement.sendKeys(
-    "7 Restaurants in Rome Locals Love " +
-      getRandomElementsFromArray(twitterUsers, 3).join(" ")
+    newComment +
+    getRandomElementsFromArray(twitterUsers, 3).join(" ")
   );
 
   const replyElementBtn = "//div[@data-testid='tweetButtonInline']";
@@ -150,37 +149,55 @@ const openDcom = async () => {
     .forBrowser("chrome")
     .setChromeOptions(chromeOptions)
     .build();
-  await driver.get(config.dcomURL);
+  try {
+    driver.get(config.dcomURL);
+    return driver
+  } catch (error) {
+    return;
+  } finally {
+    return { ...driver }
+  }
+};
+
+const getBtnDcom = async (driver) => {
   const btnElementId = "//button[@id='home_connect_btn']";
   await driver.wait(until.elementLocated(By.xpath(btnElementId)), 10000);
   return await driver.findElement(By.xpath(btnElementId));
-};
+}
 
-const excelData = convertExcel("excel");
-// const length = excelData.length;
-const length = 5;
-
+let excelData = convertExcel("excel");
+excelData = config.isRunAllExcel ? excelData : excelData.slice(config.startExcelIndex, config.EndExcelIndex)
+const length = excelData.length;
 let i = 0;
 
 (async () => {
-  // const btn = await openDcom();
-  // btn.click();
+  const waitingTime = 10000;
   let drivers = [];
+  const driverDcom = await openDcom();
+  const btnConnect = await getBtnDcom(driverDcom);
   while (i <= length) {
+    driverDcom.executeScript("arguments[0].click();", btnConnect);
+    await waitFor(waitingTime)
     const promiseAll = [];
     excelData.slice(i, i + config.groupChrome).forEach((item) => {
       const profile = `${config.profile}\\${item.STT}\\Data\\profile`;
       console.log({ profile });
       promiseAll.push(
-        loginTwitter.bind({ ...this }, profile, item.Twitter, item.PassTwitter)
+        loginTwitter.bind({ ...this }, profile, item.Twitter, item.PassTwitter, item.Comment, item.Metamask
+        )
       );
     });
+    waitFor(5000);
     drivers = await Promise.all(promiseAll.map((x) => x()));
+    waitFor(5000);
+    (async () => {
+      await drivers.forEach(async (x) => { await x.close() })
+    })();
+    waitFor(5000);
     i += config.groupChrome;
+    // const btnDisconnect = await getBtnDcom(driverDcom);
+    driverDcom.executeScript("arguments[0].click();", btnConnect);
+    waitFor(waitingTime)
+    console.log(drivers)
   }
-  drivers.forEach((driver) => {
-    driver.close();
-  });
-  console.log(drivers);
-  // btn.click();
 })();

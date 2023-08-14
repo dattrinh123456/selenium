@@ -30,4 +30,9 @@ function getRandomPort(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-module.exports = { getRandomElementsFromArray, convertExcel, getRandomPort };
+async function waitFor(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+
+module.exports = { getRandomElementsFromArray, convertExcel, getRandomPort, waitFor };
