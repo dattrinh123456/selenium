@@ -1,5 +1,3 @@
-const { Builder, By, until, Capabilities } = require("selenium-webdriver");
-const chrome = require("selenium-webdriver/chrome");
 const config = require("./config.js");
 const {
   convertExcel,
@@ -12,7 +10,7 @@ const {
 } = require("./utils.js");
 
 const onHandleActionMetamask = async (profile, item) => {
-  const driver = await getDriver(profile);
+  const driver = getDriver(profile);
   try {
     driver.get(config.metamaskURL);
     const checkboxElement = await getElement(
@@ -116,7 +114,6 @@ const onHandleActionMetamask = async (profile, item) => {
       "//button[@data-testid='address-copy-button-text']"
     );
     item.metamaskURL = await addressBtn[1].getText();
-    console.log(address);
   } catch (error) {
   } finally {
     return { ...driver };

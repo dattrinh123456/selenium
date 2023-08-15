@@ -1,6 +1,7 @@
 const { Builder, By, until, Capabilities } = require("selenium-webdriver");
 const chrome = require("selenium-webdriver/chrome");
 const config = require("./config.js");
+const XLSX = require("xlsx");
 
 function getRandomElementsFromArray(array, count) {
   const shuffledArray = array.slice();
@@ -12,7 +13,6 @@ function getRandomElementsFromArray(array, count) {
 }
 
 function convertExcel(excelFile) {
-  const XLSX = require("xlsx");
   const workbook = XLSX.readFile(`./${excelFile}.csv`);
   const sheetName = workbook.SheetNames[0];
   const worksheet = workbook.Sheets[sheetName];
