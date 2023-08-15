@@ -4,9 +4,9 @@ const config = require("./config.js");
 const {
   getRandomElementsFromArray,
   convertExcel,
-  getRandomPort,
   waitFor,
   getDriver,
+  executeDriver,
 } = require("./utils.js");
 
 const loginTwitter = async (profile, username, password, comment, metamask) => {
@@ -161,36 +161,19 @@ const getBtnDcom = async (driver) => {
   return await driver.findElement(By.xpath(btnElementId));
 };
 
-let excelData = convertExcel("excel");
-const length = excelData.length;
-let i = 0;
-
 const main = async () => {
+  const excelData = convertExcel("excel");
+  let i = 0;
   const waitingTime = 10000;
-  let drivers = [];
   const driverDcom = await openDcom();
   const btn = await getBtnDcom(driverDcom);
-  while (i <= length) {
+  while (i <= excelData.length) {
     driverDcom.executeScript("arguments[0].click();", btn);
     await waitFor(waitingTime);
-    const promiseAll = [];
-    excelData.slice(i, i + config.groupChrome).forEach((item) => {
-      const profile = `${config.profile}\\${item.STT}\\Data\\profile`;
-      console.log({ profile });
-      promiseAll.push(
-        onHandleActionTwitter.bind(this, profile, item.Comment, item.Metamask)
-      );
-    });
-    drivers = await Promise.all(promiseAll.map((x) => x()));
-    waitFor(1000);
-    drivers.forEach(async (x) => {
-      await x.close();
-    });
-    waitFor(1000);
+    drivers = await executeDriver(this, excelData, i, onHandleActionTwitter);
     i += config.groupChrome;
     driverDcom.executeScript("arguments[0].click();", btn);
     waitFor(waitingTime);
-    console.log(drivers);
   }
 };
 

@@ -8,6 +8,7 @@ const {
   getElement,
   getElements,
   convertArrayToExcel,
+  executeDriver,
 } = require("./utils.js");
 
 const onHandleActionMetamask = async (profile, item) => {
@@ -122,28 +123,14 @@ const onHandleActionMetamask = async (profile, item) => {
   }
 };
 
-let excelData = convertExcel("excel");
-const length = excelData.length;
-let i = 0;
-
 const main = async () => {
-  let drivers = [];
-  while (i <= length) {
-    const promiseAll = [];
-    excelData.slice(i, i + config.groupChrome).forEach((item) => {
-      const profile = `${config.profile}\\${item.STT}\\Data\\profile`;
-      promiseAll.push(onHandleActionMetamask.bind(this, profile, item));
-    });
-    drivers = await Promise.all(promiseAll.map((x) => x()));
-    waitFor(1000);
-    drivers.forEach(async (x) => {
-      await x.close();
-    });
-    waitFor(1000);
+  const excelData = convertExcel("excel");
+  let i = 0;
+  while (i <= excelData.length) {
+    drivers = await executeDriver(this, excelData, i, onHandleActionMetamask);
     i += config.groupChrome;
-    console.log(drivers);
   }
-  convertArrayToExcel(excelData, "output.xlxs");
+  convertArrayToExcel(excelData);
 };
 
 main();

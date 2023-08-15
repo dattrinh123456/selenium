@@ -1,5 +1,7 @@
 const { Builder, By, until, Capabilities } = require("selenium-webdriver");
 const chrome = require("selenium-webdriver/chrome");
+const config = require("./config.js");
+
 function getRandomElementsFromArray(array, count) {
   const shuffledArray = array.slice();
   for (let i = shuffledArray.length - 1; i > 0; i--) {
@@ -29,12 +31,11 @@ function convertExcel(excelFile) {
     : excelData.slice(config.startExcelIndex, config.EndExcelIndex);
 }
 
-function convertArrayToExcel(dataArray, path) {
+function convertArrayToExcel(dataArray) {
   const worksheet = XLSX.utils.json_to_sheet(dataArray);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
-  const excelFilePath = path;
-  XLSX.writeFile(workbook, excelFilePath);
+  XLSX.writeFile(workbook, config.outputExcelName);
 }
 
 function getRandomPort(min, max) {
@@ -74,6 +75,22 @@ async function getElements(driver, idElement) {
   return await driver.findElements(By.xpath(idElement));
 }
 
+async function executeDriver(that, excelData, i, func) {
+  let drivers = [];
+  const promiseAll = [];
+  excelData.slice(i, i + config.groupChrome).forEach((item) => {
+    const profile = `${config.profile}\\${item.STT}\\Data\\profile`;
+    promiseAll.push(func.bind(that, profile, item));
+  });
+  drivers = await Promise.all(promiseAll.map((x) => x()));
+  waitFor(1000);
+  drivers.forEach(async (x) => {
+    await x.close();
+  });
+  waitFor(1000);
+  console.log(drivers);
+}
+
 module.exports = {
   getRandomElementsFromArray,
   convertExcel,
@@ -83,4 +100,5 @@ module.exports = {
   getElement,
   getElements,
   convertArrayToExcel,
+  executeDriver,
 };

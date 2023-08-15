@@ -18,4 +18,5 @@ module.exports = config = {
   isRunAllExcel: true,
   isCustomComment: false,
   password: "dattrinh",
+  outputExcelName: "output.csv",
 };
