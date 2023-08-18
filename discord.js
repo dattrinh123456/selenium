@@ -8,6 +8,8 @@ const {
   waitFor,
   waitForPageToDisplay,
   getElement,
+  getBtnDcom,
+  openDcom,
 } = require("./utils.js");
 
 const onHandleActionDiscord = async (profile, item) => {
@@ -15,20 +17,20 @@ const onHandleActionDiscord = async (profile, item) => {
   try {
     await driver.get(config.discordURL);
     await waitForPageToDisplay(driver);
-    await waitFor(5000);
+    await waitFor(2000);
     var token = item.TokenDiscord;
     await driver.executeScript(
       'function login(e){setInterval(()=>{document.body.appendChild(document.createElement("iframe")).contentWindow.localStorage.token=`"${e}"`},50),setTimeout(()=>{location.reload()},2500)}login("' +
-        token +
-        '");'
+      token +
+      '");'
     );
     await waitFor(2000);
-    const username = await getElement(
-      driver,
-      "//div[@data-text-variant='text-xs/normal']"
-    );
-    item["discordUsername"] = await username.getText();
-    waitFor(1000);
+    // const username = await getElement(
+    //   driver,
+    //   "//div[@data-text-variant='text-xs/normal']"
+    // );
+    // item["discordUsername"] = await username.getText();
+    // waitFor(1000);
   } catch (error) {
   } finally {
     return { ...driver };
@@ -41,12 +43,12 @@ const main = async function () {
   const driverDcom = await openDcom();
   const btn = await getBtnDcom(driverDcom);
   while (i <= excelData.length) {
-    driverDcom.executeScript("arguments[0].click();", btn);
+    await driverDcom.executeScript("arguments[0].click();", btn);
     await waitFor(10000);
     await executeDriver(this, excelData, i, onHandleActionDiscord);
     i += config.groupChrome;
-    driverDcom.executeScript("arguments[0].click();", btn);
-    waitFor(10000);
+    await driverDcom.executeScript("arguments[0].click();", btn);
+    await waitFor(10000);
   }
   convertArrayToExcel(excelData);
 };

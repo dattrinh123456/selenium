@@ -5,21 +5,22 @@ module.exports = config = {
   twitterID: "TravelLeisure/status/1690484425065209856",
   metamaskURL:
     "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html#onboarding/welcome",
-  profile: "D:\\TEST",
+  profile: "C:\\Users\\Dat Trinh\\Downloads\\TEST\\",
   dcomProfile:
-    "C:\\Users\\ddat2\\OneDrive\\Desktop\\CHROME\\260\\Data\\profile",
+    "C:\\Users\\Dat Trinh\\Downloads\\GoogleChromePortable\\Data\\profile",
   dcomURL: "http://192.168.10.1/html/index.html?version=22.001.34.02.11",
   discordURL: "https://discord.com/login",
-  googleURL : 'https://accounts.google.com',
+  googleURL: 'https://accounts.google.com',
   isLike: false,
   isRetweet: false,
   isReply: false,
-  groupChrome: 1,
-  startExcelIndex: 0,
-  EndExcelIndex: 1,
+  groupChrome: 3,
+  startExcelIndex: 6,
+  EndExcelIndex: 16,
   isRunAllExcel: false,
   isCustomComment: false,
   password: "dattrinh",
   outputExcelName: "output.csv",
   isLoginTwitter: true,
 };
+

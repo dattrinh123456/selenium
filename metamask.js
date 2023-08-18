@@ -7,7 +7,6 @@ const {
   convertArrayToExcel,
   executeDriver,
 } = require("./utils.js");
-
 const onHandleActionMetamask = async (profile, item) => {
   const driver = getDriver(profile);
   try {

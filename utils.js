@@ -83,11 +83,11 @@ async function executeDriver(that, excelData, i, func) {
     await promiseAll.push(func.bind(that, profile, item));
   });
   drivers = await Promise.all(promiseAll.map((x) => x()));
-  waitFor(4000);
+  await waitFor(4000);
   drivers.forEach(async (x) => {
     await x.close();
   });
-  waitFor(4000);
+  await waitFor(4000);
   console.log(drivers);
 }
 

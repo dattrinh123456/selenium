@@ -48,7 +48,7 @@ const loginTwitter = async (profile, item) => {
         nextBtn[3].click();
         await waitFor(2000);
       }
-    } catch (error) {}
+    } catch (error) { }
 
     await driver.wait(
       until.elementLocated(
@@ -156,8 +156,8 @@ const main = async () => {
       config.isLoginTwitter ? loginTwitter : onHandleActionTwitter
     );
     i += config.groupChrome;
-    driverDcom.executeScript("arguments[0].click();", btn);
-    waitFor(10000);
+    await driverDcom.executeScript("arguments[0].click();", btn);
+    await waitFor(10000);
   }
 };
 
