@@ -48,7 +48,7 @@ async function waitFor(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function getDriver(profile) {
+function getDriver(profile) {
   const chromeCapabilities = Capabilities.chrome();
   chromeCapabilities.set("chromeOptions");
 
@@ -78,17 +78,56 @@ async function getElements(driver, idElement) {
 async function executeDriver(that, excelData, i, func) {
   let drivers = [];
   const promiseAll = [];
-  excelData.slice(i, i + config.groupChrome).forEach((item) => {
+  excelData.slice(i, i + config.groupChrome).forEach(async (item) => {
     const profile = `${config.profile}\\${item.STT}\\Data\\profile`;
-    promiseAll.push(func.bind(that, profile, item));
+    await promiseAll.push(func.bind(that, profile, item));
   });
   drivers = await Promise.all(promiseAll.map((x) => x()));
-  waitFor(1000);
+  waitFor(4000);
   drivers.forEach(async (x) => {
     await x.close();
   });
-  waitFor(1000);
+  waitFor(4000);
   console.log(drivers);
+}
+
+async function waitForPageToDisplay(driver, timeout = 10000) {
+  try {
+    const allElementsSelector = "body *"; // Replace with a more specific selector if needed
+
+    await driver.wait(
+      until.elementLocated(By.css(allElementsSelector)),
+      timeout
+    );
+    await driver.wait(
+      until.elementIsVisible(driver.findElement(By.css(allElementsSelector))),
+      timeout
+    );
+  } catch (error) {
+    console.error("Error waiting for page to display:", error);
+  }
+}
+async function openDcom() {
+  const chromeOptions = new chrome.Options();
+  chromeOptions.addArguments("user-data-dir=" + config.dcomProfile);
+  const driver = new Builder()
+    .forBrowser("chrome")
+    .setChromeOptions(chromeOptions)
+    .build();
+  try {
+    driver.get(config.dcomURL);
+    return driver;
+  } catch (error) {
+    return;
+  } finally {
+    return { ...driver };
+  }
+}
+
+async function getBtnDcom(driver) {
+  const btnElementId = "//button[@id='home_connect_btn']";
+  await driver.wait(until.elementLocated(By.xpath(btnElementId)), 10000);
+  return await driver.findElement(By.xpath(btnElementId));
 }
 
 module.exports = {
@@ -101,4 +140,7 @@ module.exports = {
   getElements,
   convertArrayToExcel,
   executeDriver,
+  waitForPageToDisplay,
+  getBtnDcom,
+  openDcom,
 };

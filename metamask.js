@@ -1,7 +1,6 @@
 const config = require("./config.js");
 const {
   convertExcel,
-  waitFor,
   getDriver,
   getElement,
   getElements,
@@ -124,7 +123,7 @@ const main = async () => {
   const excelData = convertExcel("excel");
   let i = 0;
   while (i <= excelData.length) {
-    drivers = await executeDriver(this, excelData, i, onHandleActionMetamask);
+    await executeDriver(this, excelData, i, onHandleActionMetamask);
     i += config.groupChrome;
   }
   convertArrayToExcel(excelData);
